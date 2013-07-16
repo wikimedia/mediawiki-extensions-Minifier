@@ -20,13 +20,10 @@ process.on( 'message', function( msg ) {
 
 function minify( id, text ) {
 	var time = process.hrtime();
-	text = fs.readFileSync( 'jquery.js', { encoding: 'utf8' } );
 	text = uglify.minify( text, { fromString: true } );
-	//text = uglify.minify( 'jquery.js' );
-	//console.log( text );
 	time = process.hrtime( time );
 	time = time[0] * 1e6 + time[1] / 1000;
-	log( 'Minified JS fragment ' + id + ' in ' + time + 'us.' )
+	log( 'Minified JS fragment ' + id + ' in ' + time + 'us.' );
 	process.send( { code: 'minified', id: id, text: text, time: time } );
 }
 
@@ -35,5 +32,3 @@ log( 'Ready, pid=' + process.pid );
 function log( str ) {
 	console.log( logPrefix + str );
 }
-
-//setTimeout( function() { null.foo(); }, 3000 );
