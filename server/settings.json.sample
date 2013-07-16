@@ -1,0 +1,10 @@
+{
+	"verbose": true,
+	"network": {
+		"port": 8888,
+		"timeout": 5000
+	},
+	"queue": {
+		"sizeInMB": 1024
+	}
+}
