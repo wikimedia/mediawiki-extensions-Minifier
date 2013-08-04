@@ -17,6 +17,8 @@ var crypto = require( 'crypto' );
 
 var config = require( './config' );
 var statsUI = require( './stats' );
+var utils = require( './utils' );
+var Work = require( './work' );
 
 config.load( 'main', 'settings.json' );
 
@@ -69,17 +71,16 @@ http.createServer(
 ).listen( config.main.network.port );
 
 function outputStats( request, response ) {
-	stats.queue
+	stats.queueLength = queue.length;
 	var res = statsUI.render( stats, 'html' );
 	response.writeHead( 200, { 'Content-Type': res.type } );
 	response.write( res.output );
 	response.end();
 }
 
-function reportError( response, code, message ) {
+function reportError( response, code, name, message ) {
 	response.writeHead( code, { 'Content-Type': 'text/html' } );
-	response.write( '<!doctype html><html><title>Error</title><body><h1>' + code + ' '
-		+ message + '</h1></body></html>' );
+	response.write( utils.errorPage( code, name, message ) );
 	response.end();
 }
 
@@ -95,7 +96,6 @@ function getBody( request, response ) {
 }
 
 function minify( request, response ) {
-	console.log( request.post );
 	stats.requests++;
 	var text = request.post.text;
 	var id = request.post.id;
@@ -105,10 +105,39 @@ function minify( request, response ) {
 	var cached = cache.get( id );
 	if ( typeof cached !== 'undefined' ) {
 		stats.cacheHits++;
+		log('cache hit');
 		sendMinified( response, cached );
 	} else {
-		cluster.workers[1].send( { code: 'minify', id: id, text: text } );
+		var pending = new PendingRequest( response )
+		// @todo: Non-linear search?
+		if ( !sendToFreeWorker( id, text, pending ) ) {
+			enqueue( id, text, pending )
+			var work = new Work( id, text, pending );
+		}
 	}
+}
+
+function sendToFreeWorker( id, text, pending ) {
+	for ( var workerId in cluster.workers ) {
+		var worker = cluster.workers[workerId];
+		if ( typeof worker.currentWork === 'undefined' ) {
+			worker.currentWork = new Work( id, text, pending );
+			worker.currentWork.sendToWorker( worker );
+			log( 'Sending work ' + id + ' to worker #' + workerId );
+			return true;
+		}
+	}
+	return false;
+}
+
+function enqueue( id, text, request ) {
+	for ( var i = 0; i < queue.length; i++ ) {
+		if ( queue[i].id == id ) {
+			queue[i].requests.push( request );
+			return;
+		}
+	}
+	queue.push( new Work( id, text, request ) );
 }
 
 function sendMinified( response, text ) {
@@ -137,7 +166,15 @@ function setupCluster() {
 	cluster.on( 'disconnect', function( worker ) {
 		log( 'Worker ' + worker.id + ' has disconnected, cleaning up and restarting.' );
 		stats.workerErrors++;
-		cluster.fork();
+		if ( worker.work ) {
+			worker.work.failed( 'Worker disconnection' );
+		}
+		var newWorker = cluster.fork();
+		setupWorker( newWorker );
+		var work = queue.unshift();
+		if ( work ) {
+			work.sendToWorker( worker );
+		}
 	} );
 
 	cluster.on( 'exit', function( worker, code, signal ) {
@@ -153,7 +190,19 @@ function setupCluster() {
 	log( 'Started, pid=' + process.pid + '. Spawning ' + cpus + ' workers.' );
 	for ( var i = 0; i < cpus; i++ ) {
 		var worker = cluster.fork();
+		setupWorker( worker );
 	}
+}
+
+function setupWorker( worker ) {
+	worker.on( 'message', function( msg ) {
+		if ( msg.code === 'minified' ) {
+			if ( !worker.currentWork || msg.id != worker.currentWork.id ) {
+				log( 'Worker #' + worker.id + ': unexpected work ' + msg.id );
+			}
+			//worker.currentWork.done( msg.text );
+		}
+	} );
 }
 
 /**
@@ -166,18 +215,29 @@ function PendingRequest( response ) {
 	this.live = true;
 
 	var thisSaved = this;
-	this.timer = setTimeout( function() { thisSaved.timeout(); }, this.config.main.network.timeout );
+	this.timer = setTimeout( function() { thisSaved.timeout(); }, config.main.network.timeout );
 }
 
 PendingRequest.prototype = {
 	timeout: function() {
 		stats.requestTimeouts++;
-		this.live = false;
+		reportError( this.response, 500, 'Internal Server Error', 'Timed out' );
 		log( 'Request timeout' );
+		this.destroy();
+	},
+
+	respond: function( code, type, content ) {
+		if ( !this.live ) {
+			return;
+		}
+		this.response.writeHead( code, { 'Content-Type': type } );
+		this.response.write( content );
+		this.response.end();
+		this.destroy();
 	},
 
 	destroy: function() {
 		clearTimeout( this.timer );
+		this.live = false;
 	}
 };
-
