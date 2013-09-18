@@ -1,0 +1,9 @@
+{
+	"name": "minifier-server",
+	"description": "UglifyJS server for MediaWiki",
+	"version": "0.5.0",
+	"dependencies": {
+		"lru-cache": "2.x.x",
+		"uglify-js": "2.x.x"
+	}
+}
