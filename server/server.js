@@ -200,7 +200,7 @@ function setupWorker( worker ) {
 			if ( !worker.currentWork || msg.id != worker.currentWork.id ) {
 				log( 'Worker #' + worker.id + ': unexpected work ' + msg.id );
 			}
-			//worker.currentWork.done( msg.text );
+			worker.currentWork.done( msg.text );
 		}
 	} );
 }

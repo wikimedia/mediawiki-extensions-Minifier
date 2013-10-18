@@ -16,7 +16,10 @@ class JSUglifier implements IResourceFilter {
 			'code' => 'minify',
 			'text' => $js,
 		) );
-		$req->execute();
+		$status = $req->execute();
+		if ( !$status->isGood() ) {
+			throw new MWException( "Error requesting minification: {$status->getMessage()}" );
+		}
 		if ( $req->getStatus() != 200 ) {
 			throw new MWException( 'Shit hit fan' );
 		}
