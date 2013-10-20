@@ -1,5 +1,3 @@
-var utils = require( './utils' );
-
 function Work( id, text, request ) {
 	this.id = id;
 	this.text = text;
@@ -8,21 +6,21 @@ function Work( id, text, request ) {
 
 Work.prototype = {
 	done: function( text ) {
-		this.respond( 200, 'application/javascript', text );
+		this.respond( 'success', text );
 	},
 
 	failed: function( reason ) {
-		this.respond( 500, 'text/html', utils.errorPage( 500, 'Internal Server Error', reason ) );
+		this.respond( 'failed', '', reason );
 	},
 
-	respond: function( code, type, content ) {
+	respond: function( method, param1, param2 ) {
 		for ( var i = 0; i < this.requests.length; i++ ) {
-			this.requests[i].respond( code, type, content )
+			this.requests[i][method]( param1, param2 );
 		}
 	},
 
 	sendToWorker: function( worker ) {
-		worker.work = this;
+		worker.currentWork = this;
 		worker.send( { code: 'minify', id: this.id, text: this.text } );
 	}
 };

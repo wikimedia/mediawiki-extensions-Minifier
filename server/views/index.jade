@@ -1,0 +1,28 @@
+extends layout
+
+block content
+	h1= title
+	table
+		tr
+			td Total requests
+			td= stats.requests
+		tr
+			td Request errors
+			td= stats.requestErrors
+		tr
+			td Requests served
+			td= stats.requestsResponded
+		tr
+			td Pending requests
+			td= stats.pendingRequests
+		tr
+			td Average minification time
+			td= stats.minificationTime
+		tr
+			td Worker errors
+			td= stats.workerErrors
+
+	form(method='POST', action='/')
+		textarea(name='text', rows='10', cols='80', placeholder='Try minification here!')
+		br
+		input(type='submit', value='Minify!')

@@ -19,6 +19,7 @@ $wgResourceFilters['minify-js'] = 'JSUglifier';
 $wgMinifierHosts = array();
 
 $wgMinifierConnectionOptions = array(
-	'connectTimeout' => 0.5,
-	'timeout' => 5,
+	// Examples:
+	//'connectTimeout' => 10,
+	//'timeout' => 10000,
 );

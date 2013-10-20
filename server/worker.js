@@ -26,6 +26,7 @@ function minify( id, text ) {
 		log( 'Minified JS fragment ' + id + ' in ' + time + 'us.' );
 		process.send( { code: 'minified', id: id, text: text, time: time } );
 	} catch ( ex ) {
+		log( 'Exception: ' + ex.toString() );
 		process.send( { code: 'exception', id: id, text: ex.toString() } );
 	}
 }
