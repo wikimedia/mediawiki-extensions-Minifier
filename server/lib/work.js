@@ -10,7 +10,7 @@ Work.prototype = {
 	},
 
 	failed: function( reason ) {
-		this.respond( 'failed', '', reason );
+		this.respond( 'error', '', reason );
 	},
 
 	respond: function( method, param1, param2 ) {
