@@ -11,7 +11,7 @@ class JSUglifier implements IResourceFilter {
 
 	public function filter( $js ) {
 		wfProfileIn( __METHOD__ );
-		$req = $this->getRequest();
+		$req = $this->getRequest( array( 'id' => md5( $js ) ) );
 		$req->setData( array(
 			'code' => 'minify',
 			'text' => $js,
@@ -35,12 +35,14 @@ class JSUglifier implements IResourceFilter {
 	}
 
 	/**
+	 * @param array $params
 	 * @return MWHttpRequest
 	 */
-	private function getRequest() {
+	private function getRequest( array $params = array() ) {
 		global $wgMinifierHosts;
 
-		// @todo:
-		return MWHttpRequest::factory( "http://{$wgMinifierHosts[0]}/", $this->options );
+		$host = ArrayUtils::pickRandom( $wgMinifierHosts );
+		$query = $params ? '?' . wfArrayToCgi( $params ) : '';
+		return MWHttpRequest::factory( "http://$host/$query", $this->options );
 	}
 }
