@@ -17,14 +17,21 @@ class JSUglifier implements IResourceFilter {
 			'text' => $js,
 		) );
 		$status = $req->execute();
+		$err = '';
 		if ( !$status->isGood() ) {
-			throw new MWException( "Error requesting minification: {$status->getMessage()}" );
+			$err = "Error requesting minification: {$status->getMessage()}";
 		}
-		if ( $req->getStatus() != 200 ) {
-			throw new MWException( 'Shit hit fan' );
+		$statusCode = $req->getStatus();
+		$returnedText = $req->getContent();
+		if ( $statusCode != 200 ) {
+			$err = "Request to minifier ended with code $statusCode: $returnedText";
 		}
 		wfProfileOut( __METHOD__ );
-		return $req->getContent();
+		if ( $err ) {
+			wfDebugLog( 'minifier', $err );
+			throw new MWException( $err );
+		}
+		return $returnedText;
 	}
 
 	/**
