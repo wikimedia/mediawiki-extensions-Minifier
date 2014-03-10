@@ -118,16 +118,22 @@ module.exports = {
 	setupWorker: function( worker ) {
 		var self = this;
 		worker.on( 'message', function( msg ) {
-			if ( msg.code === 'minified' ) {
-				if ( !worker.currentWork || msg.id != worker.currentWork.id ) {
-					log( 'Worker #' + worker.id + ': unexpected work ' + msg.id );
-					return;
-				}
-				self.saveToCache( msg.id, msg.text );
-				worker.currentWork.done( msg.text );
-				delete worker.currentWork;
-				self.checkQueue( worker );
+			switch ( msg.code ) {
+				case 'minified':
+					if ( !worker.currentWork || msg.id != worker.currentWork.id ) {
+						log( 'Worker #' + worker.id + ': unexpected work ' + msg.id );
+						// @todo: decide if currentWork work should be considered failed
+						return;
+					}
+					self.saveToCache( msg.id, msg.text );
+					worker.currentWork.done( msg.text );
+					break;
+				case 'exception':
+					worker.currentWork.failed( msg.text );
+					break;
 			}
+			delete worker.currentWork;
+			self.checkQueue( worker );
 		} );
 	},
 
