@@ -1,7 +1,7 @@
 <?php
 
 if ( !defined( 'MEDIAWIKI' ) ) {
-	echo( "This is an extension to the MediaWiki package and cannot be run standalone.\n" );
+	echo( "This is a MediaWiki extension and cannot be run standalone.\n" );
 	die;
 }
 
@@ -14,12 +14,18 @@ $wgExtensionCredits['other'][] = array(
 );
 
 $wgAutoloadClasses['JSUglifier'] = __DIR__ . '/Minifier.body.php';
+$wgAutoloadClasses['MinificationException'] = __DIR__ . '/MinificationException.php';
 $wgResourceFilters['minify-js'] = 'JSUglifier';
 
-$wgMinifierHosts = array();
+/**
+ * Host used by the minifier service with optional port
+ */
+$wgMinifierHost = 'localhost:8888';
 
+/**
+ * Array of cURL options
+ */
 $wgMinifierConnectionOptions = array(
-	// Examples:
-	//'connectTimeout' => 10,
-	//'timeout' => 10000,
+	CURLOPT_CONNECTTIMEOUT_MS => 1000,
+	CURLOPT_TIMEOUT_MS => 10000,
 );
