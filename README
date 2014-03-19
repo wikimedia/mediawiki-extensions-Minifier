@@ -1,6 +1,6 @@
 == Setting up ==
 * Add Minifier to LocalSettings.php: require_once( "$IP/extensions/Minifier/Minifier.php" );
-* Set $wgMinifierHosts = array( 'localhost:8888' );
+* Set $wgMinifierHost = '<hostname or IP>:8888'; if you're going to run the server in a different host.
 * Checkout https://gerrit.wikimedia.org/r/74293 in MedaWiki core.
 * Copy server/settings.json.sample to settings.json.
 * Install node.js dependencies: cd server && npm install
