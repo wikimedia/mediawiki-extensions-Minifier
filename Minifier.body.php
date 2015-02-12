@@ -5,7 +5,6 @@ class JSUglifier implements IResourceFilter {
 	private static $curl;
 
 	public function filter( $js ) {
-		$profile = new ProfileSection( __METHOD__ );
 		return $this->performRequest(
 			array( 'id' => md5( $js ) ),
 			array(
