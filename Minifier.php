@@ -13,6 +13,8 @@ $wgExtensionCredits['other'][] = array(
 	'url' => 'https://www.mediawiki.org/wiki/Extension:Minifier',
 );
 
+$wgMessagesDirs['Minifier'] = __DIR__ . '/i18n';
+
 $wgAutoloadClasses['JSUglifier'] = __DIR__ . '/Minifier.body.php';
 $wgAutoloadClasses['MinificationException'] = __DIR__ . '/MinificationException.php';
 $wgResourceFilters['minify-js'] = 'JSUglifier';

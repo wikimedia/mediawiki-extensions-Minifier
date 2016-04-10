@@ -1,0 +1,6 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"minifier-desc": "Improves JavaScript minification ratio by using an UglifyJS service"
+}
