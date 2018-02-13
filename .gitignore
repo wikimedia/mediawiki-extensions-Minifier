@@ -1,6 +1,0 @@
-server/node_modules
-server/settings.json
-npm-debug.log
-node_modules/**
-vendor/**
-composer.lock
